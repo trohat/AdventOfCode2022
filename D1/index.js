@@ -33,7 +33,7 @@ const task2 = calories => {
         }
     }
     results.push(elf);
-    results = R.sort((a, b) => b - a, results);
+    results = R.sort(R.descend(R.identity()), results);
     return R.sum(R.take(3, results));
 };
 
