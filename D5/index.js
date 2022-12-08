@@ -22,8 +22,8 @@ const prepare = (data, test) => {
     return [crates, moves];
 };
 
-const task1 = ([ xcrates, moves ]) => {
-    crates = R.clone(xcrates);
+const task1 = ([ cratesToClone, moves ]) => {
+    crates = R.clone(cratesToClone);
     for (const move of moves) {
         toMove = R.takeLast(move.count, crates[move.from]);
         crates[move.from] = R.dropLast(move.count, crates[move.from])

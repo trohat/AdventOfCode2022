@@ -1,7 +1,5 @@
 console.log("AOC 2022 - Day 6: Tuning Trouble");
 
-const splitLines = data => data.split(String.fromCharCode(10));
-
 const task1 = datastream => {
     for (let i = 4; i < datastream.length; i++) {
         let marker = new Set(datastream.slice(i-4, i));
