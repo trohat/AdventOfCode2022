@@ -67,7 +67,7 @@ const task2 = instructions => {
         if (i % 40 === 0) {
             string += "\n";
         }
-        if (darks.includes(i)) string += "#";
+        if (darks.includes(i)) string += "█";
         else string += ".";
     }
     console.log(string);
