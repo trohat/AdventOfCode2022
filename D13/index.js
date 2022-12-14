@@ -3,7 +3,7 @@ console.log("AOC 2022 - Day 13: Distress Signal");
 const splitLines = data => data.split(String.fromCharCode(10) + String.fromCharCode(10));
 
 const prepare = data => {
-    return data.map(d => d.split("\n").map(l => eval(l)));
+    return data.map(d => d.split("\n").map(l => JSON.parse(l)));
 };
 
 const runNumberComparison = (n1, n2) => {
