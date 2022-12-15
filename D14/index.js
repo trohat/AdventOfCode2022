@@ -30,6 +30,19 @@ const prepare = data => {
     return [blocked, maxY];
 };
 
+const draw = ([blocked, maxY], grains) => {
+    let str = "";
+    for (let y = 0; y <= maxY; y++) {
+        for (let x = 400; x <= 700; x++) {
+            if (blocked.has([x, y].toString()) && grains && grains.has([x, y].toString())) str += ".";
+            else if (blocked.has([x, y].toString())) str += "█";
+            else str += " ";
+        }
+        str += "\n";
+    }
+    console.log(str);
+}
+
 const task1 = ([blockedToClone, maxY]) => {
     const blocked = new Set();
     // R.clone doesn't work on sets!! have to do it manually
@@ -61,6 +74,7 @@ const task1 = ([blockedToClone, maxY]) => {
 
 const task2 = ([blocked, maxY]) => {
     console.log(blocked.size);
+    let grainSet = new Set();
     let grains = 0;
     maxY++;
     sand: while (!blocked.has("500,0")) { // one grain of sand
@@ -70,6 +84,7 @@ const task2 = ([blocked, maxY]) => {
         step: while (true) { // one step
             if (sandY === maxY) {
                 blocked.add([sandX, sandY].toString());
+                grainSet.add([sandX, sandY].toString());
                 continue sand;
             }
             for (const [dirX, dirY] of [[0,1], [-1, 1], [1, 1]]) {
@@ -84,9 +99,11 @@ const task2 = ([blocked, maxY]) => {
                 }
             }
             blocked.add([sandX, sandY].toString());
+            grainSet.add([sandX, sandY].toString());
             continue sand;
         }
     }
+    draw([blocked, ++maxY], grainSet)
     return grains;
 };
 
@@ -98,10 +115,14 @@ testdata = prepare(splitLines(testdata));
 console.log("Test data:");
 console.log(testdata);
 
+draw(testdata);
+
 inputdata = prepare(splitLines(inputdata));
 
 console.log("Input data:");
 console.log(inputdata);
+
+draw(inputdata);
 
 console.log("");
 
