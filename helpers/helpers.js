@@ -119,3 +119,17 @@ const getAllPermutations = arr => {
     });
     return permutations;
 };
+
+const getAllVariations = (arr, n) => {
+    if (n > arr.length) n = arr.length;
+    if (n === 1) return [...arr];
+    const variations = [];
+    arr.forEach((d, index) => {
+        let newArr = [...arr];
+        newArr.splice(index, 1);
+        getAllVariations(newArr, n - 1).forEach((newD) => {
+            variations.push(d.concat(newD));
+        });
+    });
+    return variations;
+}

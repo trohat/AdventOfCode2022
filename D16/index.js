@@ -2,16 +2,68 @@ console.log("AOC 2022 - Day 16: Proboscidea Volcanium");
 
 const splitLines = data => data.split(String.fromCharCode(10));
 
-const prepare = data => {
-    const scan = {};
+const parse = data => {
+    let scan = {};
     const re = /Valve (\w\w) has flow rate=(\d+); tunnels? leads? to valves? ([\w, ]+)$/;
     for (const line of data) {
         let [, valve, rate, valves] = re.exec(line);
         rate = Number(rate);
-        scan[valve] = { rate, valves: valves.split(", ") };
+        scan[valve] = { rate, valves: {} };
+        for (const v of valves.split(", ")) {
+            scan[valve].valves[v] = 1;
+        }
     }
     return scan;
 };
+
+const transform = scan => {
+    for (const valve of Object.keys(scan)) {
+        if (valve !== "AA" && scan[valve].rate === 0 && Object.keys(scan[valve].valves).length === 2) {
+            const v1 = Object.keys(scan[valve].valves)[0];
+            const v2 = Object.keys(scan[valve].valves)[1];
+            let distTo = scan[v1].valves[valve];
+            let distFrom = scan[valve].valves[v2];
+            delete scan[v1].valves[valve];
+            delete scan[v2].valves[valve];
+            scan[v2].valves[v1] = distTo + distFrom;
+            scan[v1].valves[v2] = distTo + distFrom;
+            delete scan[valve];
+        }
+    }
+    return scan;
+}
+
+const findShortest = (scan, valve1, valve2) => {
+    const seen = new Map();
+    seen.set(valve1, 0);
+    let states = Object.entries(scan[valve1].valves);
+    let results = [];
+    while (states.length > 0) {
+        let [v1, l1] = states.shift();
+        if (v1 === valve2) {
+            results.push(l1);
+        }
+        for (const [v2, l2] of Object.entries(scan[v1].valves)) {
+            if (!seen.has(v2) || seen.get(v2) > l1 + l2) {
+                seen.set(v2, l1 + l2);
+                states.push([v2, l1 + l2])
+            }
+        }
+    }
+    const length = Math.min(...results);
+    scan[valve1].valves[valve2] = length;
+    scan[valve2].valves[valve1] = length;
+}
+
+const findAllShortest = scan => {
+    for (const valve1 of Object.keys(scan)) {
+        for (const valve2 of Object.keys(scan)) {
+            if (!(valve2 in scan[valve1].valves) && valve1 !== valve2)
+                findShortest(scan, valve1, valve2);
+        }
+    }
+    return scan;
+}
 
 function divideAndSort(openString) {
     let arr = [];
@@ -29,76 +81,55 @@ function isBetterState(visited, stateString, total) {
     return false;
 }
 
-const allowedTotals = [0, 20, 40, 60, 93, 126, 159, 192, 246, 300, 354, 408, 462, 516, 570, 624, 700, 776, 852, 928, 1007, 1086, 1165, 1246, 1327, 1408, 1489, 1570, 1651];
-const allowedOpens = ["DD", "BBDD", "BBDDJJ", "BBDDHHJJ", "BBDDEEHHJJ", "BBCCDDEEHHJJ"];
-
 const task1 = scan => {
     let stateString = "AA----0--0";
     let visited = new Map();
     visited.set(stateString, 0);
-    let states = [stateString + "--0--XX"];
-    let results = [];
+    let states = [stateString + "--0"];
+    let best = 0;
+    let bestOpen;
     while (states.length > 0) {
         const stateString = states.shift();
-        let [at, open, mins, flow, total, cameFrom] = stateString.split("--");
-        mins = +mins;
-        flow = +flow;
-        total = +total;
+        let at = stateString.split("--")[0];
 
-        mins += 1;
-        total += flow;
-        if (mins >= 30) {
-            results.push(total);
-        } else {
-            valveObj = scan[at];
-            for (const valveString of valveObj.valves) {
-                let [at, open, mins, flow, total, cameFrom] = stateString.split("--");
-                mins = +mins;
-                flow = +flow;
-                total = +total;
+        const valves = Object.keys(scan);
+        const atIndex = valves.indexOf(at);
+        valves.splice(atIndex, 1);
 
-                mins += 1;
-                total += flow;
+        for (const valveString of valves) {
+            let [at, open, mins, flow, total] = stateString.split("--");
+            mins = +mins;
+            flow = +flow;
+            total = +total;
 
-                if (valveString !== cameFrom /*&& allowedTotals.includes(total) && allowedOpens.includes(open)*/) {
-                    let newStateString = `${valveString}--${open}--${mins}--${flow}`;
-                    if (isBetterState(visited, newStateString, total)) {
+            const newValveObj = scan[valveString];
+            const to = newValveObj.valves[at]; //back is same length
+            if (mins + to + 1 >= 30) {
+                total += flow * (30 - mins);
+                if (total > best) {
+                    bestOpen = open;
+                    best = total;
+                }
+                continue;
+            }
+            if (open.indexOf(valveString) === -1 || open.indexOf(valveString) % 2 === 1) {
+                mins += to + 1;
+                total += flow * (to + 1);
+                flow += newValveObj.rate;
+                open += valveString;
+                open = divideAndSort(open);
+                let newStateString = `${valveString}--${open}--${mins}--${flow}`;
+                if (isBetterState(visited, newStateString, total)) {
                         visited.set(newStateString, total);
-                        states.push(`${newStateString}--${total}--${at}`);
+                        states.push(`${newStateString}--${total}`);
                     }
-                }
-                let newValveObj = scan[valveString];
-                if ((open.indexOf(valveString) === -1 || open.indexOf(valveString) % 2 === 1) && newValveObj.rate !== 0) {
-                    mins += 1;
-                    total += flow;
-                    flow += newValveObj.rate;
-                    open += valveString;
-                    open = divideAndSort(open);
-                    if (mins >= 30) {
-                        results.push(total);
-                    } else /*if (allowedTotals.includes(total) && allowedOpens.includes(open))*/ {
-                            let newStateString = `${valveString}--${open}--${mins}--${flow}`;
-                            if (isBetterState(visited, newStateString, total)) {
-                                visited.set(newStateString, total);
-                                states.push(`${newStateString}--${total}--aa`);
-                            }
-                    }
-                }
-
             }
         }
     }
-    console.log(visited.size);
-    console.log(visited);
-    console.log(results.length);
-    console.log(results.sort());
-    let best = 0;
-    for (const r of results) {
-        if (r > best) best = r;
-    }
+    console.log(bestOpen);
     return best;
-};
-
+}
+    
 const task2 = data => {
 
 }
@@ -114,12 +145,19 @@ Valve HH has flow rate=22; tunnel leads to valve GG
 Valve II has flow rate=0; tunnels lead to valves AA, JJ
 Valve JJ has flow rate=21; tunnel leads to valve II`;
 
-testdata = prepare(splitLines(testdata));
+const prepare = R.pipe(
+    splitLines,
+    parse,
+    transform,
+    findAllShortest
+);
+
+testdata = prepare(testdata);
 
 console.log("Test data:");
 console.log(testdata);
 
-inputdata = prepare(splitLines(inputdata));
+inputdata = prepare(inputdata);
 
 console.log("Input data:");
 console.log(inputdata);
@@ -129,7 +167,7 @@ console.log("");
 doEqualTest(task1(testdata), 1651);
 
 console.time("Task 1");
-// console.log("Task 1: " + task1(inputdata));
+console.log("Task 1: " + task1(inputdata));
 console.timeEnd("Task 1");
 
 console.log("");
