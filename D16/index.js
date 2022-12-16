@@ -81,7 +81,28 @@ function isBetterState(visited, stateString, total) {
     return false;
 }
 
-const task1 = scan => {
+const destroyFromAA = (scan, toDestroy) => {
+    for (const d of toDestroy) {
+        delete scan["AA"].valves[d];
+        delete scan[d].valves["AA"];
+    }
+    //console.log(JSON.stringify(scan));
+    const destroyStack = [toDestroy[0]];
+    while (destroyStack.length > 0) {
+        let d1 = destroyStack.shift();
+        if (d1 in scan) {
+            for (const d2 of Object.keys(scan[d1].valves)) {
+                if (d2 in scan)
+                    destroyStack.push(d2);
+            }
+            delete scan[d1];
+        }
+    }
+    return scan;
+}
+
+const task1 = (scan, minutes) => {
+    scan = findAllShortest(R.clone(scan));
     let stateString = "AA----0--0";
     let visited = new Map();
     visited.set(stateString, 0);
@@ -90,10 +111,25 @@ const task1 = scan => {
     let bestOpen;
     while (states.length > 0) {
         const stateString = states.shift();
-        let at = stateString.split("--")[0];
+        let [at, open, mins, flow, total] = stateString.split("--");
+        mins = +mins;
+        flow = +flow;
+        total = +total;
 
         let valves = Object.keys(scan);
         valves = valves.removeAll(at);
+        valves = valves.removeAll("AA");
+        for (let i = 0; i < open.length; i += 2) {
+            valves = valves.removeAll(open[i] + open[i + 1]);
+        }
+        if (valves.length === 0) {
+            total += flow * (minutes - mins);
+            if (total > best) {
+                best = total;
+                bestOpen = open;
+            }
+            continue;
+        }
 
         for (const valveString of valves) {
             let [at, open, mins, flow, total] = stateString.split("--");
@@ -103,8 +139,8 @@ const task1 = scan => {
 
             const newValveObj = scan[valveString];
             const to = newValveObj.valves[at]; //back is same length
-            if (mins + to + 1 >= 30) {
-                total += flow * (30 - mins);
+            if (mins + to + 1 >= minutes) {
+                total += flow * (minutes - mins);
                 if (total > best) {
                     bestOpen = open;
                     best = total;
@@ -125,111 +161,44 @@ const task1 = scan => {
             }
         }
     }
-    console.log(bestOpen);
+    console.log("bestOpen", bestOpen, best);
     return best;
 }
 
 const allowedTotals = [0, 20, 61, 102, 143, 184, 159, 192, 246, 300, 354, 408, 462, 516, 570, 624, 700, 776, 852, 928, 1007, 1086, 1165, 1246, 1327, 1408, 1489, 1570, 1651];
 const allowedOpens = ["", "DD", "DDJJ", "BBDDJJ", "BBDDHHJJ", , "DDHHJJ", "BBCDDHHJJ", "BBCCDDEEHHJJ"];
 
-const task2 = scan => {
-    let steps = 0;
-    let stateString = "AA--AA--0----0--0";
-    let visited = new Map();
-    visited.set(stateString, 0);
-    let states = [stateString + "--0"];
-    let best = 0;
-    while (states.length > 0) {
-        steps++;
-        const stateString = states.shift();
-        let [at, where, when, open, mins, flow, total] = stateString.split("--");
-        when = +when;
-        mins = +mins;
-        flow = +flow;
-        total = +total;
+const task2 = (scan, test) => {
+    let scan2 = R.clone(scan);
+    if (test === "test") {
+        delete scan["AA"].valves["BB"];
+        delete scan["AA"].valves["JJ"];
+        delete scan["JJ"].valves["AA"];
+        delete scan["BB"].valves["JJ"];
+        delete scan["DD"].valves["CC"];
+        delete scan["CC"].valves["DD"];
+        delete scan["BB"];
+        delete scan["CC"];
+        delete scan["JJ"];
+        delete scan2["AA"].valves["DD"];
+        delete scan2["DD"].valves["AA"];
+        delete scan2["DD"].valves["CC"];
+        delete scan2["CC"].valves["DD"];
+        delete scan2["DD"]
+        delete scan2["EE"]
+        delete scan2["FF"]
+        delete scan2["GG"]
+        delete scan2["HH"]
 
-        let valves = Object.keys(scan);
-        valves = valves.removeAll(at);
-        valves = valves.removeAll(where);
-        valves = valves.removeAll("AA");
-        for (let i = 0; i < open.length; i += 2) {
-            valves = valves.removeAll(open[0] + open[1]);
-        }
-        if (valves.length === 0) {
-            total += flow * (26 - mins);
-            if (total > best) {
-                best = total;
-            }
-            continue;
-        }
-
-        for (let valveString of valves) {
-            let [at, where, when, open, mins, flow, total] = stateString.split("--");
-            when = +when;
-            mins = +mins;
-            flow = +flow;
-            total = +total;
-
-            if (true && allowedTotals.includes(total)) {
-                if (total !== 0) console.log(stateString);
-
-
-                let to = scan[valveString].valves[at];
-                const newMins = Math.min(when, to);
-                let secondMins = Math.abs(when - to);
-                if (newMins === when) {
-                    let temp = valveString;
-                    valveString = where;
-                    where = temp;
-                }
-                let newValveObj = scan[valveString];
-                to = newValveObj.valves[at]; //back is same length
-
-                // what about second one?
-                if (mins + newMins + 1 >= 26) {
-                    total += flow * (26 - mins);
-                    if (total > best) {
-                        best = total;
-                    }
-                    continue;
-                }
-
-                if (newMins === 0) {
-
-                } else if (to === when) {
-                    total += flow * (newMins + 1);
-                    if (open.indexOf(valveString) === -1 || open.indexOf(valveString) % 2 === 1) {
-                        open += valveString;
-                        flow += newValveObj.rate;
-                    }
-                    if (open.indexOf(where) === -1 || open.indexOf(where) % 2 === 1) {
-                        open += where;
-                        flow += scan[where].rate;
-                    }
-
-                    open = divideAndSort(open);
-                    secondMins = 0;
-                    mins += newMins + 1;
-                }
-                else {
-                    total += flow * (newMins + 1);
-                    if (open.indexOf(valveString) === -1 || open.indexOf(valveString) % 2 === 1) {
-                        open += valveString;
-                        flow += newValveObj.rate;
-                    }
-                    open = divideAndSort(open);
-                    secondMins = secondMins - 1;
-                    mins += newMins + 1;
-                }
-                let newStateString = `${valveString}--${where}--${secondMins}--${open}--${mins}--${flow}`;
-                if (isBetterState(visited, newStateString, total)) {
-                    visited.set(newStateString, total);
-                    states.push(`${newStateString}--${total}`);
-                }
-            }
-        }
+    } else {
+        scan = destroyFromAA(scan, ["NU", "VQ"]);
+        scan2 = destroyFromAA(scan2, ["QI", "MX", "KX"]);
     }
-    return best;
+    console.log(scan);
+    console.log(scan2);
+    let me = task1(scan, 26);
+    let elephant = task1(scan2, 26);
+    return me + elephant;
 }
 /*
 let testdata = `Valve AA has flow rate=0; tunnels lead to valves BB, CC, DD
@@ -253,7 +222,7 @@ const prepare = R.pipe(
     splitLines,
     parse,
     transform,
-    
+
 );
 
 testdata = prepare(testdata);
@@ -269,19 +238,19 @@ console.log(inputdata);
 console.log("");
 
 console.time("Task 1 test");
-doEqualTest(task1(testdata), 1651);
+doEqualTest(task1(testdata, 30), 1651);
 console.timeEnd("Task 1 test");
 
 console.time("Task 1");
-// console.log("Task 1: " + task1(inputdata));
+// console.log("Task 1: " + task1(inputdata, 30));
 console.timeEnd("Task 1");
 
 console.log("");
 
 console.time("Task 2 - test");
-// doEqualTest(task2(testdata), 1707);
+doEqualTest(task2(testdata, "test"), 1707);
 console.timeEnd("Task 2 - test");
 
-//console.time("Task 2");
+console.time("Task 2");
 console.log("Task 2: " + task2(inputdata));
-//console.timeEnd("Task 2");
+console.timeEnd("Task 2");
