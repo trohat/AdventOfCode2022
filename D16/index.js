@@ -165,9 +165,6 @@ const task1 = (scan, minutes) => {
     return best;
 }
 
-const allowedTotals = [0, 20, 61, 102, 143, 184, 159, 192, 246, 300, 354, 408, 462, 516, 570, 624, 700, 776, 852, 928, 1007, 1086, 1165, 1246, 1327, 1408, 1489, 1570, 1651];
-const allowedOpens = ["", "DD", "DDJJ", "BBDDJJ", "BBDDHHJJ", , "DDHHJJ", "BBCDDHHJJ", "BBCCDDEEHHJJ"];
-
 const task2 = (scan, test) => {
     let scan2 = R.clone(scan);
     if (test === "test") {
@@ -176,7 +173,6 @@ const task2 = (scan, test) => {
         delete scan["JJ"].valves["AA"];
         delete scan["BB"].valves["JJ"];
         delete scan["DD"].valves["CC"];
-        delete scan["CC"].valves["DD"];
         delete scan["BB"];
         delete scan["CC"];
         delete scan["JJ"];
@@ -189,9 +185,13 @@ const task2 = (scan, test) => {
         delete scan2["FF"]
         delete scan2["GG"]
         delete scan2["HH"]
-
+        
     } else {
-        scan = destroyFromAA(scan, ["NU", "VQ"]);
+        delete scan["VQ"].valves["KC"];
+        delete scan["KC"].valves["VQ"];
+        scan = destroyFromAA(scan, ["NU"]);
+        delete scan2["VQ"].valves["SJ"];
+        delete scan2["SJ"].valves["VQ"];
         scan2 = destroyFromAA(scan2, ["QI", "MX", "KX"]);
     }
     console.log(scan);
@@ -242,7 +242,7 @@ doEqualTest(task1(testdata, 30), 1651);
 console.timeEnd("Task 1 test");
 
 console.time("Task 1");
-// console.log("Task 1: " + task1(inputdata, 30));
+console.log("Task 1: " + task1(inputdata, 30));
 console.timeEnd("Task 1");
 
 console.log("");
