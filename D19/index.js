@@ -11,45 +11,57 @@ const prepare = data => {
     return robots;
 };
 
-const oreBlockingClay = (robot, ore, oreRobots) => {
-    return isBlocking(robot, "oreInOre", "oreInClay", ore, oreRobots, ore, oreRobots, "oreInClay");
-}
+const task = (blueprints, maxMins) => {
 
-const oreBlockingObsidian = (robot, ore, oreRobots, clay, clayRobots) => {
-    return isBlocking(robot, "oreInOre", "oreInObsidian", ore, oreRobots, clay, clayRobots, "clayInObsidian");
-}
+    const addState = (states, visited, state) => {
+        if (!visited.has(state)) {
+            visited.add(state);
+            states.push(state);
+        }
+    };
 
-const oreBlockingGeode = (robot, ore, oreRobots, obsidian, obsRobots) => {
-    return isBlocking(robot, "oreInOre", "oreInGeode", ore, oreRobots, obsidian, obsRobots, "obsidianInGeode");
-}
+    const addNewStates = (states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, maxOre, maxClay, maxObs) => {
+        for (let producing = 1; producing <= 4; producing++) {
+            const state = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`;
+            switch (producing) {
+                case 1:
+                    if (oreRobots < maxOre) {
+                        addState(states, visited, state);
+                    }
+                    break;
+                case 2:
+                    if (clayRobots < maxClay) {
+                        addState(states, visited, state);
+                    }
+                    break;
+                case 3:
+                    if (obsRobots < maxObs && clayRobots > 0) {
+                        addState(states, visited, state);
+                    }
+                    break;
+                case 4:
+                    if (obsRobots > 0) {
+                        addState(states, visited, state);
+                    }
+                    break;
+                default:
+                    throw new Exception("Nononononon!!!");
+            }
+            
+        }
+    };
 
-const clayBlockingObsidian = (robot, ore, oreRobots, clay, clayRobots) => {
-    return isBlocking(robot, "oreInClay", "oreInObsidian", ore, oreRobots, clay, clayRobots, "clayInObsidian");
-}
+    const addProducingState = (states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing) => {
+        const state = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`;
+        addState(states, visited, state);
+    };
 
-const clayBlockingGeode = (robot, ore, oreRobots, obsidian, obsRobots) => {
-    return isBlocking(robot, "oreInClay", "oreInGeode", ore, oreRobots, obsidian, obsRobots, "obsidianInGeode");
-}
-
-const obsidianBlockingGeode = (robot, ore, oreRobots, obsidian, obsRobots) => {
-    return isBlocking(robot, "oreInObsidian", "oreInGeode", ore, oreRobots, obsidian, obsRobots, "obsidianInGeode");
-}
-
-// AAblockingBB
-// robot, OREinAA, OREinBB, ore, oreRobots, SECONDMAT, SECONDMATrobots, SECONDMATinBB
-const isBlocking = (robot, blocking, blocked, conflictingAmount, conflictingProduction, waitingAmount, waitingProduction, waitingMaterialTarget) => {
-    if (robot[blocked] <= robot[blocking]) return false;
-    if (waitingProduction === 0) return false;
-    if (conflictingProduction === 0) return false;
-    let howMuchWaitingMaterialWeNeed = robot[waitingMaterialTarget] - waitingAmount + waitingProduction;
-    let daysToWait = Math.ceil(howMuchWaitingMaterialWeNeed / waitingProduction);
-    let howMuchWillIHave = conflictingAmount + (conflictingProduction - 1) * daysToWait;
-    if (howMuchWillIHave >= robot[blocking] + robot[blocked]) return false;
-    return true;
-}
-
-const task1 = blueprints => {
     let total = 0;
+    let product = 1;
+    if (maxMins === 32) {
+        blueprints = blueprints.slice(0, 3);
+        console.log(blueprints);
+    }
     for (const robot of blueprints) {
         let ore = 0;
         let clay = 0;
@@ -63,20 +75,28 @@ const task1 = blueprints => {
         let maxOre = Math.max(robot.oreInOre, robot.oreInClay, robot.oreInObsidian, robot.oreInGeode);
         let maxClay = robot.clayInObsidian;
         let maxObs = robot.obsidianInGeode;
-        let state = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}`
-        let states = [state];
+        let producing = 1; 
+        let state1 = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`
+        producing = 2
+        let state2 = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`
+        let states = [state1, state2];
         let visited = new Set();
-        visited.add(state);
         let quality = 0;
+        let lastMinutes = 0;
         while (states.length > 0) {
             let state = states.shift();
-            [ minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots ] = state.split("-").map(Number);
+            [ minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing ] = state.split("-").map(Number);
+            //console.log(minutes, ":", oreRobots, clayRobots, obsRobots, geodeRobots, "---", ore, clay, obsidian, geodes);
             minutes++;
+            if (minutes > lastMinutes) {
+                lastMinutes = minutes;
+                console.log("Minute " + minutes + ": " + states.length + " states");
+            }
             ore += oreRobots; 
             clay += clayRobots; 
             obsidian += obsRobots;
             geodes += geodeRobots;
-            if (minutes === 24) {
+            if (minutes === maxMins) {
                 if (geodes >= quality) {
                     // console.log(state);
                     // console.log(geodes);
@@ -85,54 +105,59 @@ const task1 = blueprints => {
                 }
                 continue;
             }
-            let producing = false;
-            if (ore - oreRobots >= robot.oreInOre && oreRobots < maxOre) {
-                state = `${minutes}-${ore - robot.oreInOre}-${clay}-${obsidian}-${geodes}-${oreRobots + 1}-${clayRobots}-${obsRobots}-${geodeRobots}`;
-                if (!visited.has(state)) {
-                    visited.add(state);
-                    states.push(state);
-                }
-                if (!oreBlockingClay(robot, ore, oreRobots) &&
-                    !oreBlockingObsidian(robot, ore, oreRobots, clay, clayRobots) && 
-                    !oreBlockingGeode(robot, ore, oreRobots, obsidian, obsRobots)) {
-                    producing = true;
-                } 
-            }
-            if (ore - oreRobots >= robot.oreInClay && clayRobots < maxClay) {
-                state = `${minutes}-${ore - robot.oreInClay}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots + 1}-${obsRobots}-${geodeRobots}`;
-                if (!visited.has(state)) {
-                    visited.add(state);
-                    states.push(state);
-                }
-                if (!clayBlockingObsidian(robot, ore, oreRobots, clay, clayRobots) && !(clayBlockingGeode(robot, ore, oreRobots, obsidian, obsRobots))) {
-                    producing = true;
-                }
-            }
-            if (ore - oreRobots >= robot.oreInObsidian && clay - clayRobots >= robot.clayInObsidian && obsRobots < maxObs) {
-                state = `${minutes}-${ore - robot.oreInObsidian}-${clay - robot.clayInObsidian}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots + 1}-${geodeRobots}`;
-                if (!visited.has(state)) {
-                    visited.add(state);
-                    states.push(state);
-                }
-                if (!obsidianBlockingGeode(robot, ore, oreRobots, obsidian, obsRobots)) producing = true;
-            }
-            if (ore - oreRobots >= robot.oreInGeode && obsidian - obsRobots >= robot.obsidianInGeode) {
-                state = `${minutes}-${ore - robot.oreInGeode}-${clay}-${obsidian - robot.obsidianInGeode}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots + 1}`;
-                if (!visited.has(state)) {
-                    visited.add(state);
-                    states.push(state);
-                }
-                producing = true;
-            }
-            if (!producing) {
-                state = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}`;
-                states.push(state);
+            switch (producing) {
+                case 1:
+                    if (ore - oreRobots >= robot.oreInOre) {
+                        oreRobots++;
+                        ore -= robot.oreInOre;
+                        addNewStates(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, maxOre, maxClay, maxObs);
+                    } else {
+                        addProducingState(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing);
+                    }
+                    break;
+                case 2:
+                    if (ore - oreRobots >= robot.oreInClay) {
+                        clayRobots++;
+                        ore -= robot.oreInClay;
+                        addNewStates(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, maxOre, maxClay, maxObs);
+                    } else {
+                        addProducingState(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing);
+                    }
+                    break;
+                case 3:
+                    if (ore - oreRobots >= robot.oreInObsidian && clay - clayRobots >= robot.clayInObsidian ) {
+                        obsRobots++;
+                        ore -= robot.oreInObsidian;
+                        clay -= robot.clayInObsidian;
+                        addNewStates(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, maxOre, maxClay, maxObs);
+                    } else {
+                        addProducingState(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing);
+                    }
+                    break;
+                case 4:
+                    if (ore - oreRobots >= robot.oreInGeode && obsidian - obsRobots >= robot.obsidianInGeode) {
+                        geodeRobots++;
+                        ore -= robot.oreInGeode;
+                        obsidian -= robot.obsidianInGeode;
+                        addNewStates(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, maxOre, maxClay, maxObs);
+                    } else {
+                        addProducingState(states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing);
+                    }
+                    break;
+                default:
+                    throw new Exception("fuck offf!");
             }
         }
         console.log("----------------------------------", quality);
+        
         total += quality * robot.robot;
+        product *= quality;
     }
-    return total;
+    if (maxMins === 24) {
+        return total;
+    } else {
+        return product;
+    }
 };
 
 const task2 = data => {
@@ -155,16 +180,16 @@ console.log(inputdata);
 console.log("");
 
 console.time("Task 1 - test");
-doEqualTest(task1(testdata), 33);
+// doEqualTest(task(testdata, 24), 33);
 console.timeEnd("Task 1 - test");
 
 console.time("Task 1");
-console.log("Task 1: " + task1(inputdata));
+// console.log("Task 1: " + task(inputdata, 24));
 console.timeEnd("Task 1");
 
 console.log("");
 
 //doEqualTest(task2(testdata), 336);
 //console.time("Task 2");
-//console.log("Task 2: " + task2(inputdata));
+console.log("Task 2: " + task(inputdata, 32));
 //console.timeEnd("Task 2");
