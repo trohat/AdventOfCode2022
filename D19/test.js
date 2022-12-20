@@ -9,7 +9,7 @@ for (let i = 0; i < 1000000; i++) {
 }
 console.timeEnd("test - string");
 
-console.time("test-obj");
+console.time("test - obj");
 
 for (let i = 0; i < 1000000; i++) {
     const obj = {
@@ -26,4 +26,24 @@ for (let i = 0; i < 1000000; i++) {
     c = +c;
     d++;
 }
-console.timeEnd("test-obj");
+console.timeEnd("test - obj");
+
+console.time("test - json");
+
+for (let i = 0; i < 1000000; i++) {
+    const obj = {
+        a: 15,
+        b: 16,
+        c: 17,
+        d: 18,
+        e: 19,
+        d: 20
+    }
+    x = JSON.stringify(obj);
+    let {a,b,c,d,e,f} = JSON.parse(x);
+    a = +a;
+    b = +b;
+    c = +c;
+    d++;
+}
+console.timeEnd("test - json");

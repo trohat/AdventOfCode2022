@@ -14,15 +14,15 @@ const prepare = data => {
 const task = (blueprints, maxMins) => {
 
     const addState = (states, visited, state) => {
-        if (!visited.has(state)) {
-            visited.add(state);
+        //if (!visited.has(state)) {
+        //    visited.add(state);
             states.push(state);
-        }
+        //}
     };
 
     const addNewStates = (states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, maxOre, maxClay, maxObs) => {
         for (let producing = 1; producing <= 4; producing++) {
-            const state = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`;
+            const state = {minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing};
             switch (producing) {
                 case 1:
                     if (oreRobots < maxOre) {
@@ -52,7 +52,7 @@ const task = (blueprints, maxMins) => {
     };
 
     const addProducingState = (states, visited, minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing) => {
-        const state = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`;
+        const state = {minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing};
         addState(states, visited, state);
     };
 
@@ -76,16 +76,18 @@ const task = (blueprints, maxMins) => {
         let maxClay = robot.clayInObsidian;
         let maxObs = robot.obsidianInGeode;
         let producing = 1; 
-        let state1 = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`
+        let state1 = {minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing};
         producing = 2
-        let state2 = `${minutes}-${ore}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots}-${obsRobots}-${geodeRobots}-${producing}`
+        let state2 = {minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing};
         let states = [state1, state2];
         let visited = new Set();
         let quality = 0;
         let lastMinutes = 0;
-        while (states.length > 0) {
-            let state = states.shift();
-            [ minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing ] = state.split("-").map(Number);
+        let stateN = 0;
+        while (stateN < states.length) {
+            let state = states[stateN];
+            stateN++;
+            let {minutes, ore, clay, obsidian, geodes, oreRobots, clayRobots, obsRobots, geodeRobots, producing} = state;
             //console.log(minutes, ":", oreRobots, clayRobots, obsRobots, geodeRobots, "---", ore, clay, obsidian, geodes);
             minutes++;
             if (minutes > lastMinutes) {
@@ -180,16 +182,16 @@ console.log(inputdata);
 console.log("");
 
 console.time("Task 1 - test");
-// doEqualTest(task(testdata, 24), 33);
+doEqualTest(task(testdata, 24), 33);
 console.timeEnd("Task 1 - test");
 
 console.time("Task 1");
-// console.log("Task 1: " + task(inputdata, 24));
+console.log("Task 1: " + task(inputdata, 24));
 console.timeEnd("Task 1");
 
 console.log("");
 
-//doEqualTest(task2(testdata), 336);
+doEqualTest(task(testdata), 336);
 //console.time("Task 2");
-console.log("Task 2: " + task(inputdata, 32));
+// console.log("Task 2: " + task(inputdata, 32));
 //console.timeEnd("Task 2");
