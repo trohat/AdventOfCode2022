@@ -36,7 +36,7 @@ const obsidianBlockingGeode = (robot, ore, oreRobots, obsidian, obsRobots) => {
 }
 
 // AAblockingBB
-// robot, AAinORE, BBinORE, ore, oreRobots, SECONDMAT, SECONDMATrobots, BBinSECONDMAT
+// robot, OREinAA, OREinBB, ore, oreRobots, SECONDMAT, SECONDMATrobots, SECONDMATinBB
 const isBlocking = (robot, blocking, blocked, conflictingAmount, conflictingProduction, waitingAmount, waitingProduction, waitingMaterialTarget) => {
     if (robot[blocked] <= robot[blocking]) return false;
     if (waitingProduction === 0) return false;
@@ -96,9 +96,7 @@ const task1 = blueprints => {
                     !oreBlockingObsidian(robot, ore, oreRobots, clay, clayRobots) && 
                     !oreBlockingGeode(robot, ore, oreRobots, obsidian, obsRobots)) {
                     producing = true;
-                } else {
-                    console.log
-                }
+                } 
             }
             if (ore - oreRobots >= robot.oreInClay && clayRobots < maxClay) {
                 state = `${minutes}-${ore - robot.oreInClay}-${clay}-${obsidian}-${geodes}-${oreRobots}-${clayRobots + 1}-${obsRobots}-${geodeRobots}`;
