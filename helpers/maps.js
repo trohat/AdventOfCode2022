@@ -17,3 +17,7 @@ const graphicsToWords = new Map([["<", "left"], [">", "right"], ["^", "up"], ["v
 const leftTurns = new Map([["up", "left"], ["left", "down"], ["down", "right"], ["right", "up"]]);
 
 const rightTurns = new Map([["up", "right"], ["right", "down"], ["down", "left"], ["left", "up"]]);
+
+const leftTurnsInChars = new Map([["U", "L"], ["L", "D"], ["D", "R"], ["R", "U"]]);
+
+const rightTurnsInChars = new Map([["U", "R"], ["R", "D"], ["D", "L"], ["L", "U"]]);
