@@ -1,22 +1,26 @@
 // --- Arrays ---
 
-Array.prototype.sum = function () {
+Array.prototype.sum = function() {
     return this.reduce((a, b) => a + b, 0);
 }
 
-Array.prototype.max = function () {
+Array.prototype.max = function() {
     return Math.max(...this);
 }
 
-Array.prototype.min = function () {
+Array.prototype.min = function() {
     return Math.min(...this);
 }
 
-Array.prototype.countChar = function (char) {
+Array.prototype.countElement = function(element) {
+    return this.filter(e => e === element).length;
+}
+
+Array.prototype.countChar = function(char) {
     return this.reduce((accumulator, str) => accumulator + str.split(char).length - 1, 0);
 }
 
-Array.prototype.removeAll = function (element) {
+Array.prototype.removeAll = function(element) {
     return this.filter(e => e !== element);
 }
 
@@ -27,21 +31,21 @@ Array.prototype.removeFirst = function (element) {
 }
 */
 
-Array.prototype.compare = function (arr2) {
-    if (this.length !== arr2.length) return false;
-    let same = true;
-    this.forEach((field, index) => {
-        if (field !== arr2[index]) same = false;
-    })
-    return same;
+Array.prototype.compare = function(other) {
+    if (this.length !== other.length) return false;
+    const length = this.length;
+    for (let i = 0; i < length; i++) {
+        if (this[i] !== other[i]) return false;
+    }
+    return true;
 }
 
-Array.prototype.intersection = function (arrB) {
+Array.prototype.intersection = function(arrB) {
     return this.filter(el => arrB.includes(el));
 }
 
 // sorted union with eliminated duplicates
-Array.prototype.union = function (arrB) {
+Array.prototype.union = function(arrB) {
     return [...new Set([...this, ...arrB])].sort();
 }
 
@@ -56,7 +60,7 @@ Array.prototype.rotateRight = function() {
         for (let i = 0; i < line.length; i++) {
             if (Array.isArray(line)) newTile[i] = [line[i], ...newTile[i]];
             else newTile[i] = line.charAt(i) + newTile[i];
-        }   
+        }
     }
     return newTile;
 }
@@ -67,29 +71,35 @@ Array.prototype.rotateLeft = function() {
 
 Array.prototype.flip = function() {
     let newTile = [];
-    for (const line of this) { 
+    for (const line of this) {
         newTile.push(line.reverse());
     }
     return newTile;
 }
 
+// --- Sets ---
+
+Set.prototype.difference = function(other) {
+    return new Set([...this].filter(element => !other.has(element)));
+}
+
 // --- Strings ---
 
 // str.isupper()
-String.prototype.isUpper = function () {
+String.prototype.isUpper = function() {
     return this.toUpperCase() == this;
 }
 
 // str.islower()
-String.prototype.isLower = function () {
+String.prototype.isLower = function() {
     return this.toLowerCase() == this;
 }
 
-String.prototype.countChar = function (char) {
+String.prototype.countChar = function(char) {
     return this.split(char).length - 1;
 }
 
-String.prototype.setCharAt = function (index, char) {
+String.prototype.setCharAt = function(index, char) {
     return this.substring(0, index) + char + this.substring(index + 1);
 }
 

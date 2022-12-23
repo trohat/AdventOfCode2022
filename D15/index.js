@@ -1,6 +1,6 @@
 console.log("AOC 2022 - Day 15: Beacon Exclusion Zone");
 
-Set.prototype.difference = function (other) {
+Set.prototype.difference = function(other) {
     return new Set([...this].filter(element => !other.has(element)));
 }
 

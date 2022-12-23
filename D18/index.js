@@ -1,6 +1,6 @@
 console.log("AOC 2022 - Day 18: Boiling Boulders");
 
-Array.prototype.count = function (element) {
+Array.prototype.count = function(element) {
     return this.filter(e => e === element).length;
 }
 

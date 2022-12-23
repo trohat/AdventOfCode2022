@@ -240,7 +240,6 @@ class Cube extends Board {
 
 class TestCube extends Cube {
         convert(x, y, facing) {
-                console.log("convert test");
                 switch (facing) {
                         case "R":
                                 console.assert(x == 12);
